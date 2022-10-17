@@ -1,3 +1,5 @@
+// clang-format off
+
 /*This is mechanically generated code*/
 #include <stdlib.h>
 
@@ -2965,8 +2967,9 @@ int* fast9_score(const byte* i, int stride, xy* corners, int num_corners, int b)
 	int pixel[16];
 	make_offsets(pixel, stride);
 
-    for(n=0; n < num_corners; n++)
+    for(n=0; n < num_corners; n++) {
         scores[n] = fast9_corner_score(i + corners[n].y*stride + corners[n].x, pixel, b);
+    }
 
 	return scores;
 }
