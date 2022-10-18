@@ -1,31 +1,59 @@
 #ifndef FAST_H
 #define FAST_H
 
-typedef struct { int x, y; } xy; 
-typedef unsigned char byte;
+#include <stddef.h>
+#include <stdint.h>
 
-int fast9_corner_score(const byte* p, const int pixel[], int bstart);
-int fast10_corner_score(const byte* p, const int pixel[], int bstart);
-int fast11_corner_score(const byte* p, const int pixel[], int bstart);
-int fast12_corner_score(const byte* p, const int pixel[], int bstart);
+namespace fast {
 
-xy* fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
-xy* fast10_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
-xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
-xy* fast12_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
+    struct Feature {
+        uint16_t x, y;
+    };
 
-int* fast9_score(const byte* i, int stride, xy* corners, int num_corners, int b);
-int* fast10_score(const byte* i, int stride, xy* corners, int num_corners, int b);
-int* fast11_score(const byte* i, int stride, xy* corners, int num_corners, int b);
-int* fast12_score(const byte* i, int stride, xy* corners, int num_corners, int b);
+    /**
+     * @brief Detects, scores and suppresses non-max FAST corners.
+     *
+     * @param image_buffer [in] Image data.
+     * @param width [in] Width of image.
+     * @param height [in] Height of image.
+     * @param stride [in] Column length of image (used with @p width to only run
+     * the detection on a certain part of the image. If the whole image should
+     * be run through the algorithm, this should be equal to the image width).
+     * @param out_feature_buffer [out] Buffer for detected features.
+     * @param feature_buffer_length [in] Length of the buffer for the detected
+     * features.
+     * @param out_number_of_corners [out] The number of features detected.
+     */
+    void detect_nonmax(const uint8_t* image_buffer,
+                       const uint16_t width,
+                       const uint16_t height,
+                       const uint16_t stride,
+                       const uint8_t threshold,
+                       Feature* out_feature_buffer,
+                       const size_t feature_buffer_length,
+                       size_t* out_number_of_features);
 
+    void detect(const uint8_t* image_buffer,
+                const uint16_t width,
+                const uint16_t height,
+                const uint16_t stride,
+                const uint8_t threshold,
+                Feature* out_feature_buffer,
+                const size_t feature_buffer_length,
+                size_t* out_number_of_features);
 
-xy* fast9_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
-xy* fast10_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
-xy* fast11_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
-xy* fast12_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
+    void score(const uint8_t* image_buffer,
+               const uint16_t stride,
+               const Feature* features,
+               const size_t number_of_features,
+               const uint8_t threshold,
+               int* out_scores);
 
-xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, int* ret_num_nonmax);
+    void nonmax_suppression(const Feature* features,
+                            const int* scores,
+                            const size_t number_of_features,
+                            Feature* out_feature_buffer,
+                            size_t* out_number_of_features);
 
-
+}
 #endif
