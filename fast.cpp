@@ -2979,6 +2979,12 @@ namespace fast {
         }
     }
 
+    /**
+     * @brief Store the initial detected features not on the stack to prevent a
+     * potential stack overflow.
+     */
+    static Feature detected_features[512];
+
     void detect_nonmax(const uint8_t* image_buffer,
                        const uint16_t width,
                        const uint16_t height,
@@ -2988,28 +2994,29 @@ namespace fast {
                        const size_t feature_buffer_length,
                        size_t* out_number_of_features) {
 
-        size_t number_of_features;
+        // TODO: feature_buffer_length should probably be passed during the
+        // detect here
 
-        Feature features[512];
+        size_t number_of_features;
 
         fast::detect(image_buffer,
                      width,
                      height,
                      stride,
                      threshold,
-                     features,
-                     sizeof(features),
+                     detected_features,
+                     sizeof(detected_features) / sizeof(Feature),
                      &number_of_features);
 
         int scores[number_of_features];
         fast::score(image_buffer,
                     stride,
-                    features,
+                    detected_features,
                     number_of_features,
                     threshold,
                     scores);
 
-        fast::nonmax_suppression(features,
+        fast::nonmax_suppression(detected_features,
                                  scores,
                                  number_of_features,
                                  out_feature_buffer,
