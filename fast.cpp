@@ -6,9 +6,16 @@
 
 #define Compare(X, Y) ((X) >= (Y))
 
+#ifdef DEBUG
+    #define SECTION_ITCM
+#else
+    #define SECTION_ITCM __attribute__((section(".ramfunc.$SRAM_ITC_cm7")))
+#endif
+
 namespace fast {
 
-    static void make_offsets(uint32_t pixel[], const uint16_t row_stride) {
+    SECTION_ITCM static void make_offsets(uint32_t pixel[],
+                                          const uint16_t row_stride) {
         pixel[0]  = 0 + row_stride * 3;
         pixel[1]  = 1 + row_stride * 3;
         pixel[2]  = 2 + row_stride * 2;
@@ -27,7 +34,7 @@ namespace fast {
         pixel[15] = -1 + row_stride * 3;
     }
 
-    static uint8_t
+    SECTION_ITCM static uint8_t
     corner_score(const uint8_t* p, const uint32_t pixel[], int bstart) {
         int bmin      = bstart;
         int bmax      = 255;
@@ -2985,14 +2992,14 @@ namespace fast {
      */
     static Feature detected_features[512];
 
-    void detect_nonmax(const uint8_t* image_buffer,
-                       const uint16_t width,
-                       const uint16_t height,
-                       const uint16_t stride,
-                       const uint8_t threshold,
-                       Feature* out_feature_buffer,
-                       const size_t feature_buffer_length,
-                       size_t* out_number_of_features) {
+    SECTION_ITCM void detect_nonmax(const uint8_t* image_buffer,
+                                    const uint16_t width,
+                                    const uint16_t height,
+                                    const uint16_t stride,
+                                    const uint8_t threshold,
+                                    Feature* out_feature_buffer,
+                                    const size_t feature_buffer_length,
+                                    size_t* out_number_of_features) {
 
         // TODO: feature_buffer_length should probably be passed during the
         // detect here
@@ -3023,14 +3030,14 @@ namespace fast {
                                  out_number_of_features);
     }
 
-    void detect(const uint8_t* image_buffer,
-                const uint16_t width,
-                const uint16_t height,
-                const uint16_t stride,
-                const uint8_t threshold,
-                Feature* out_feature_buffer,
-                const size_t feature_buffer_length,
-                size_t* out_number_of_features) {
+    SECTION_ITCM void detect(const uint8_t* image_buffer,
+                             const uint16_t width,
+                             const uint16_t height,
+                             const uint16_t stride,
+                             const uint8_t threshold,
+                             Feature* out_feature_buffer,
+                             const size_t feature_buffer_length,
+                             size_t* out_number_of_features) {
 
         size_t number_of_features = 0;
 
@@ -5949,12 +5956,12 @@ namespace fast {
         *out_number_of_features = number_of_features;
     }
 
-    void score(const uint8_t* image_buffer,
-               const uint16_t stride,
-               const Feature* features,
-               const size_t number_of_features,
-               const uint8_t threshold,
-               int* out_scores) {
+    SECTION_ITCM void score(const uint8_t* image_buffer,
+                            const uint16_t stride,
+                            const Feature* features,
+                            const size_t number_of_features,
+                            const uint8_t threshold,
+                            int* out_scores) {
 
         uint32_t pixel[16];
         make_offsets(pixel, stride);
@@ -5967,11 +5974,11 @@ namespace fast {
         }
     }
 
-    void nonmax_suppression(const Feature* features,
-                            const int* scores,
-                            const size_t number_of_features,
-                            Feature* out_feature_buffer,
-                            size_t* out_number_of_features) {
+    SECTION_ITCM void nonmax_suppression(const Feature* features,
+                                         const int* scores,
+                                         const size_t number_of_features,
+                                         Feature* out_feature_buffer,
+                                         size_t* out_number_of_features) {
         int num_nonmax = 0;
         size_t last_row;
         size_t i, j;
